@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Picker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Image Picker</h1>
+
+        <div id="load-section">
+            <label for="dir-input">Directory path:</label>
+            <div class="input-row">
+                <input type="text" id="dir-input" placeholder="/path/to/your/images" autofocus>
+                <button id="load-btn" onclick="loadDirectory()">Load</button>
+            </div>
+            <p id="load-error" class="error hidden"></p>
+        </div>
+
+        <div id="toolbar" class="hidden">
+            <div class="toolbar-left">
+                <span id="counter">0 of 0 selected</span>
+                <button class="btn-small" onclick="selectAll()">Select All</button>
+                <button class="btn-small" onclick="deselectAll()">Deselect All</button>
+            </div>
+            <button id="done-btn" onclick="submitSelection()" disabled>Done</button>
+        </div>
+
+        <div id="grid" class="grid"></div>
+
+        <div id="result" class="hidden">
+            <h2>Done!</h2>
+            <p>Selected images copied to:</p>
+            <code id="result-path"></code>
+            <p id="result-count"></p>
+            <button onclick="location.reload()">Start Over</button>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
