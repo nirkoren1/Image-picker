@@ -137,19 +137,19 @@ button:disabled {
 
 /* Grid */
 .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
+    columns: 5 180px;
+    column-gap: 10px;
 }
 
 .image-cell {
     position: relative;
-    aspect-ratio: 1;
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
     border: 3px solid transparent;
     background: #fff;
+    break-inside: avoid;
+    margin-bottom: 10px;
     transition: border-color 0.15s, transform 0.1s;
 }
 
@@ -159,8 +159,7 @@ button:disabled {
 
 .image-cell img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
 }
 
