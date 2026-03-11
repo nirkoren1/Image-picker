@@ -6,7 +6,7 @@ from pathlib import Path
 from threading import Timer
 
 from flask import Flask, jsonify, render_template, request, send_file
-from PIL import Image
+from PIL import Image, ImageOps
 
 app = Flask(__name__)
 
@@ -80,6 +80,7 @@ def serve_thumbnail(filename):
     cache_key = str(file_path)
     if cache_key not in thumbnail_cache:
         img = Image.open(file_path)
+        img = ImageOps.exif_transpose(img)
         img.thumbnail((200, 200))
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=80)
