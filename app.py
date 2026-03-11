@@ -80,8 +80,12 @@ def serve_thumbnail(filename):
     cache_key = str(file_path)
     if cache_key not in thumbnail_cache:
         img = Image.open(file_path)
-        img = ImageOps.exif_transpose(img)
+        transposed = ImageOps.exif_transpose(img)
+        if transposed is not None:
+            img = transposed
         img.thumbnail((200, 200))
+        if img.mode in ("RGBA", "P", "LA"):
+            img = img.convert("RGB")
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=80)
         buf.seek(0)
