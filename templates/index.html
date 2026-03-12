@@ -30,6 +30,11 @@
 
         <div id="grid" class="grid"></div>
 
+        <div id="lightbox-overlay" class="hidden" onclick="closeLightbox()">
+            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+            <img id="lightbox-img" src="" alt="Full size" onclick="event.stopPropagation()">
+        </div>
+
         <div id="result" class="hidden">
             <h2>Done!</h2>
             <p>Selected images copied to:</p>

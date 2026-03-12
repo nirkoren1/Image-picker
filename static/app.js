@@ -53,22 +53,85 @@ async function loadDirectory() {
     }
 }
 
+function groupByDay(files) {
+    const groups = new Map();
+    for (const file of files) {
+        const dayKey = file.date.slice(0, 10);
+        if (!groups.has(dayKey)) {
+            groups.set(dayKey, []);
+        }
+        groups.get(dayKey).push(file);
+    }
+    return groups;
+}
+
+function formatDayHeading(isoDate) {
+    const [y, m, d] = isoDate.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+}
+
 function renderGrid() {
     grid.innerHTML = "";
-    allFiles.forEach((filename) => {
-        const cell = document.createElement("div");
-        cell.className = "image-cell";
-        cell.onclick = () => toggleSelect(filename, cell);
+    const groups = groupByDay(allFiles);
 
-        const img = document.createElement("img");
-        img.src = `/thumb/${encodeURIComponent(filename)}`;
-        img.alt = filename;
-        img.title = filename;
-        img.loading = "lazy";
+    for (const [dayKey, files] of groups) {
+        const groupEl = document.createElement("div");
+        groupEl.className = "day-group";
 
-        cell.appendChild(img);
-        grid.appendChild(cell);
-    });
+        const header = document.createElement("div");
+        header.className = "day-header";
+        header.innerHTML =
+            `<span class="day-toggle">&#9660;</span>` +
+            `<span class="day-label">${formatDayHeading(dayKey)}</span>` +
+            `<span class="day-count">${files.length} image${files.length !== 1 ? "s" : ""}</span>`;
+
+        const dayGrid = document.createElement("div");
+        dayGrid.className = "day-grid";
+
+        header.addEventListener("click", () => {
+            const collapsed = dayGrid.classList.toggle("collapsed");
+            header.querySelector(".day-toggle").innerHTML = collapsed
+                ? "&#9654;"
+                : "&#9660;";
+        });
+
+        for (const file of files) {
+            const cell = document.createElement("div");
+            cell.className = "image-cell";
+            cell.dataset.filename = file.name;
+            if (selected.has(file.name)) cell.classList.add("selected");
+            cell.onclick = () => toggleSelect(file.name, cell);
+
+            const img = document.createElement("img");
+            img.src = `/thumb/${encodeURIComponent(file.name)}`;
+            img.alt = file.name;
+            img.title = file.name;
+            img.loading = "lazy";
+
+            const magnifyBtn = document.createElement("button");
+            magnifyBtn.className = "magnify-btn";
+            magnifyBtn.innerHTML = "&#128269;";
+            magnifyBtn.title = "View full size";
+            magnifyBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openLightbox(file.name);
+            });
+
+            cell.appendChild(img);
+            cell.appendChild(magnifyBtn);
+            dayGrid.appendChild(cell);
+        }
+
+        groupEl.appendChild(header);
+        groupEl.appendChild(dayGrid);
+        grid.appendChild(groupEl);
+    }
 }
 
 function toggleSelect(filename, cell) {
@@ -89,7 +152,7 @@ function updateCounter() {
 
 function selectAll() {
     selected.clear();
-    allFiles.forEach((f) => selected.add(f));
+    allFiles.forEach((f) => selected.add(f.name));
     document.querySelectorAll(".image-cell").forEach((cell) => {
         cell.classList.add("selected");
     });
@@ -103,6 +166,24 @@ function deselectAll() {
     });
     updateCounter();
 }
+
+function openLightbox(filename) {
+    const overlay = document.getElementById("lightbox-overlay");
+    const img = document.getElementById("lightbox-img");
+    img.src = `/full/${encodeURIComponent(filename)}`;
+    overlay.classList.remove("hidden");
+}
+
+function closeLightbox() {
+    const overlay = document.getElementById("lightbox-overlay");
+    const img = document.getElementById("lightbox-img");
+    overlay.classList.add("hidden");
+    img.src = "";
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLightbox();
+});
 
 async function submitSelection() {
     if (selected.size === 0) return;

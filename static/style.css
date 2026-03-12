@@ -135,10 +135,65 @@ button:disabled {
     background: #8fc9a0;
 }
 
-/* Grid */
+/* Grid (vertical container for day groups) */
 .grid {
-    columns: 5 180px;
-    column-gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Day groups */
+.day-group {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.day-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.15s;
+}
+
+.day-header:hover {
+    background: #e9ecef;
+}
+
+.day-toggle {
+    font-size: 12px;
+    color: #666;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.day-label {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.day-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: #888;
+}
+
+.day-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 10px;
+}
+
+.day-grid.collapsed {
+    display: none;
 }
 
 .image-cell {
@@ -148,8 +203,7 @@ button:disabled {
     cursor: pointer;
     border: 3px solid transparent;
     background: #fff;
-    break-inside: avoid;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     transition: border-color 0.15s, transform 0.1s;
 }
 
@@ -182,6 +236,76 @@ button:disabled {
     justify-content: center;
     font-size: 16px;
     font-weight: bold;
+}
+
+/* Magnify button */
+.magnify-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.55);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 16px;
+    line-height: 32px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.image-cell:hover .magnify-btn {
+    opacity: 1;
+}
+
+.magnify-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Lightbox overlay */
+#lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+
+#lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 4px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.lightbox-close {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 28px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Result */
