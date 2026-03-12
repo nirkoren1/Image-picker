@@ -1,4 +1,5 @@
 import io
+import os
 import shutil
 import webbrowser
 from datetime import datetime
@@ -7,6 +8,7 @@ from threading import Timer
 
 from flask import Flask, jsonify, render_template, request, send_file
 from PIL import Image, ImageOps
+from PIL.ExifTags import Base as ExifBase
 
 app = Flask(__name__)
 
@@ -17,13 +19,32 @@ source_directory = None
 thumbnail_cache = {}
 
 
+def _get_date_taken(filepath):
+    """Extract the date-taken from EXIF, falling back to file mtime."""
+    try:
+        with Image.open(filepath) as img:
+            exif = img.getexif()
+            exif_ifd = exif.get_ifd(0x8769)
+            raw = (
+                exif_ifd.get(ExifBase.DateTimeOriginal)
+                or exif.get(ExifBase.DateTime)
+            )
+            if raw:
+                return datetime.strptime(raw, "%Y:%m:%d %H:%M:%S")
+    except Exception:
+        pass
+    return datetime.fromtimestamp(os.path.getmtime(filepath))
+
+
 def get_image_files(directory):
-    """List image files in the given directory (non-recursive)."""
+    """Return image metadata sorted newest-first by date taken."""
     path = Path(directory)
     files = []
-    for f in sorted(path.iterdir()):
+    for f in path.iterdir():
         if f.is_file() and f.suffix.lower() in SUPPORTED_EXTENSIONS:
-            files.append(f.name)
+            dt = _get_date_taken(f)
+            files.append({"name": f.name, "date": dt.isoformat()})
+    files.sort(key=lambda x: x["date"])
     return files
 
 
@@ -83,7 +104,13 @@ def serve_thumbnail(filename):
         transposed = ImageOps.exif_transpose(img)
         if transposed is not None:
             img = transposed
-        img.thumbnail((200, 200))
+        target_width = 400
+        if img.width > target_width:
+            ratio = target_width / img.width
+            img = img.resize(
+                (target_width, int(img.height * ratio)),
+                Image.LANCZOS,
+            )
         if img.mode in ("RGBA", "P", "LA"):
             img = img.convert("RGB")
         buf = io.BytesIO()
@@ -95,6 +122,14 @@ def serve_thumbnail(filename):
         io.BytesIO(thumbnail_cache[cache_key]),
         mimetype="image/jpeg",
     )
+
+
+@app.route("/full/<filename>")
+def serve_full(filename):
+    file_path = validate_filename(filename)
+    if file_path is None:
+        return "Not found", 404
+    return send_file(file_path)
 
 
 @app.route("/done", methods=["POST"])
@@ -128,9 +163,9 @@ def done():
 
 
 def open_browser():
-    webbrowser.open("http://localhost:5000")
+    webbrowser.open("http://localhost:5050")
 
 
 if __name__ == "__main__":
     Timer(1, open_browser).start()
-    app.run(debug=False, port=5000)
+    app.run(debug=False, port=5050)
