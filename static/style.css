@@ -139,7 +139,7 @@ button:disabled {
 .grid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
 }
 
 /* Day groups */
@@ -186,10 +186,9 @@ button:disabled {
 }
 
 .day-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-    padding: 10px;
+    column-width: 200px;
+    column-gap: 4px;
+    padding: 4px;
 }
 
 .day-grid.collapsed {
@@ -198,12 +197,13 @@ button:disabled {
 
 .image-cell {
     position: relative;
-    border-radius: 8px;
+    border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
     border: 3px solid transparent;
     background: #fff;
-    margin-bottom: 0;
+    margin-bottom: 4px;
+    break-inside: avoid;
     transition: border-color 0.15s, transform 0.1s;
 }
 
