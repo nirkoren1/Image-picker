@@ -1,2 +1,4 @@
 flask
 Pillow
+pillow-heif
+rawpy

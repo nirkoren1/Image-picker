@@ -6,17 +6,31 @@ from datetime import datetime
 from pathlib import Path
 from threading import Timer
 
+import rawpy
 from flask import Flask, jsonify, render_template, request, send_file
 from PIL import Image, ImageOps
 from PIL.ExifTags import Base as ExifBase
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 app = Flask(__name__)
 
-SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
+SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".dng"}
+BROWSER_NATIVE = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 
 # Single-user local tool: store state at module level
 source_directory = None
 thumbnail_cache = {}
+
+
+def _open_image(file_path):
+    """Open an image file, using rawpy for DNG and PIL for everything else."""
+    if Path(file_path).suffix.lower() == ".dng":
+        with rawpy.imread(str(file_path)) as raw:
+            rgb = raw.postprocess()
+        return Image.fromarray(rgb)
+    return Image.open(file_path)
 
 
 def _get_date_taken(filepath):
@@ -100,7 +114,7 @@ def serve_thumbnail(filename):
 
     cache_key = str(file_path)
     if cache_key not in thumbnail_cache:
-        img = Image.open(file_path)
+        img = _open_image(file_path)
         transposed = ImageOps.exif_transpose(img)
         if transposed is not None:
             img = transposed
@@ -129,7 +143,20 @@ def serve_full(filename):
     file_path = validate_filename(filename)
     if file_path is None:
         return "Not found", 404
-    return send_file(file_path)
+
+    if file_path.suffix.lower() in BROWSER_NATIVE:
+        return send_file(file_path)
+
+    img = _open_image(file_path)
+    transposed = ImageOps.exif_transpose(img)
+    if transposed is not None:
+        img = transposed
+    if img.mode in ("RGBA", "P", "LA"):
+        img = img.convert("RGB")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=95)
+    buf.seek(0)
+    return send_file(buf, mimetype="image/jpeg")
 
 
 @app.route("/done", methods=["POST"])
